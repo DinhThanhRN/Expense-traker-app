@@ -1,20 +1,22 @@
-import React, {useLayoutEffect} from 'react';
-import {Text} from 'react-native';
-import {Icon} from '@rneui/themed';
+import React, {useLayoutEffect, useContext} from 'react';
 import ExpensesOutput from '../components/ExpensesOutput/ExpensesOutput';
+import {ExpensesContent} from '../store/expenses-context';
 
 const AllExpenses = ({navigation}) => {
   useLayoutEffect(() => {
     navigation.setOptions({
       title: 'All Expenses',
       tabBarLabel: 'All',
-      tabBarIcon: ({color, size}) => (
-        <Icon name="filter-list-alt" color={color} size={size} />
-      ),
     });
   }, [navigation]);
-
-  return <ExpensesOutput expensesPeriod={'Total'} />;
+  const expensesCtx = useContext(ExpensesContent);
+  return (
+    <ExpensesOutput
+      expensesPeriod={'Total'}
+      expenses={expensesCtx.expenses}
+      fallBackText="No registered expenses found!"
+    />
+  );
 };
 
 export default AllExpenses;
