@@ -1,10 +1,16 @@
 import {Icon} from '@rneui/themed';
-import React, {useCallback, useContext, useLayoutEffect} from 'react';
+import React, {useState, useContext, useEffect, useLayoutEffect} from 'react';
 import {Text} from 'react-native';
 import ExpensesOutput from '../components/ExpensesOutput/ExpensesOutput';
+import ErrorOverlay from '../components/UI/ErrorOverlay';
+import LoadingOverlay from '../components/UI/LoadingOverlay';
 import {ExpensesContent} from '../store/expenses-context';
+import {fetchExpense} from '../utils/http';
 
 const RecentExpenses = ({navigation}) => {
+  const [isFetching, setIsFetching] = useState(true);
+  const [error, setError] = useState();
+  const expensesCtx = useContext(ExpensesContent);
   useLayoutEffect(() => {
     navigation.setOptions({
       title: 'Recent Expenses',
@@ -14,7 +20,31 @@ const RecentExpenses = ({navigation}) => {
       ),
     });
   }, [navigation]);
-  const expensesCtx = useContext(ExpensesContent);
+  useEffect(() => {
+    const getExpense = async () => {
+      setIsFetching(true);
+      try {
+        const expenses = await fetchExpense();
+        expensesCtx.setExpenses(expenses);
+      } catch (error) {
+        setError('Could not fetch expenses');
+      }
+      setIsFetching(false);
+    };
+    getExpense();
+  }, []);
+
+  const handleError = () => {
+    setError(null);
+  };
+
+  if (error) {
+    return <ErrorOverlay message={error} onConfirm={handleError} />;
+  }
+  if (isFetching) {
+    return <LoadingOverlay />;
+  }
+
   const recentExpenses = expensesCtx.expenses.filter(expense => {
     const today = new Date();
     const getDateMinusDays = (date, days) => {
